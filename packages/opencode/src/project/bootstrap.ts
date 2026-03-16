@@ -12,6 +12,7 @@ import { Log } from "@/util/log"
 import { ShareNext } from "@/share/share-next"
 import { Snapshot } from "../snapshot"
 import { Truncate } from "../tool/truncation"
+import { PluginWatcher } from "../plugin/watcher"
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
@@ -19,6 +20,7 @@ export async function InstanceBootstrap() {
   ShareNext.init()
   Format.init()
   await LSP.init()
+  PluginWatcher.init()
   FileWatcher.init()
   File.init()
   Vcs.init()

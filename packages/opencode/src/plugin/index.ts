@@ -21,6 +21,13 @@ export namespace Plugin {
   // Built-in plugins that are directly imported (not installed from npm)
   const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin, GitlabAuthPlugin]
 
+  function target(plugin: string) {
+    if (!plugin.startsWith("file://")) return plugin
+    const url = new URL(plugin)
+    url.searchParams.set("t", `${Date.now()}`)
+    return url.href
+  }
+
   const state = Instance.state(async () => {
     const client = createOpencodeClient({
       baseUrl: "http://localhost:4096",
@@ -83,7 +90,7 @@ export namespace Plugin {
       // Prevent duplicate initialization when plugins export the same function
       // as both a named export and default export (e.g., `export const X` and `export default X`).
       // Object.entries(mod) would return both entries pointing to the same function reference.
-      await import(plugin)
+      await import(target(plugin))
         .then(async (mod) => {
           const seen = new Set<PluginInstance>()
           for (const [_name, fn] of Object.entries<PluginInstance>(mod)) {
