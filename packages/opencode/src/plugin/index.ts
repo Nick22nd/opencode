@@ -12,6 +12,9 @@ import { Session } from "../session"
 import { NamedError } from "@opencode-ai/util/error"
 import { CopilotAuthPlugin } from "./copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "@gitlab/opencode-gitlab-auth"
+import { fileURLToPath } from "url"
+import path from "path"
+import { copyFile, unlink } from "fs/promises"
 
 export namespace Plugin {
   const log = Log.create({ service: "plugin" })
@@ -21,11 +24,22 @@ export namespace Plugin {
   // Built-in plugins that are directly imported (not installed from npm)
   const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin, GitlabAuthPlugin]
 
-  function target(plugin: string) {
-    if (!plugin.startsWith("file://")) return plugin
-    const url = new URL(plugin)
-    url.searchParams.set("t", `${Date.now()}`)
-    return url.href
+  // Bun caches modules by file path - query params don't bypass this.
+  // Copy the file to a unique temp path in the same directory, import it, then clean up.
+  async function loadPlugin(plugin: string): Promise<Record<string, PluginInstance>> {
+    if (!plugin.startsWith("file://")) return import(plugin)
+    const file = fileURLToPath(plugin)
+    const ext = path.extname(file)
+    const base = ext ? file.slice(0, -ext.length) : file
+    const tmp = `${base}.${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`
+    await copyFile(file, tmp)
+    try {
+      return await import(tmp)
+    } finally {
+      await unlink(tmp).catch((err) => {
+        log.error("failed to clean up temp plugin file", { tmp, err })
+      })
+    }
   }
 
   const state = Instance.state(async () => {
@@ -90,7 +104,7 @@ export namespace Plugin {
       // Prevent duplicate initialization when plugins export the same function
       // as both a named export and default export (e.g., `export const X` and `export default X`).
       // Object.entries(mod) would return both entries pointing to the same function reference.
-      await import(target(plugin))
+      await loadPlugin(plugin)
         .then(async (mod) => {
           const seen = new Set<PluginInstance>()
           for (const [_name, fn] of Object.entries<PluginInstance>(mod)) {
