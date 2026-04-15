@@ -15,16 +15,16 @@ function pick(parts) {
 }
 
 function wrap(text) {
-  const n = Math.max(...Array.from(text.matchAll(/`+/g), (m) => m[0].length), 2) + 1
-  const bar = "`".repeat(n)
+  const len = Math.max(...Array.from(text.matchAll(/`+/g), (m) => m[0].length), 2) + 1
+  const bar = "`".repeat(len)
   return `${bar}text\n${text || "(empty)"}\n${bar}`
 }
 
-function body(n, ask, reply) {
-  return [`## ${n}`, `### 问题`, wrap(ask), `### 回答`, wrap(reply)].join("\n\n")
+function body(id, ask, reply) {
+  return [`## ${id}`, `### 问题`, wrap(ask), `### 回答`, wrap(reply)].join("\n\n")
 }
 
-export default async function logMd(input) {
+export default async function journal(input) {
   const file = path.join(input.directory, ".opencode", "chat-log.md")
   const ask = new Map()
   const reply = new Map()
@@ -36,8 +36,8 @@ export default async function logMd(input) {
       await mkdir(path.dirname(file), { recursive: true })
       const out = Bun.file(file)
       const old = (await out.exists()) ? await out.text() : "# 对话记录\n"
-      const n = (old.match(/^## \d+$/gm)?.length ?? 0) + 1
-      await Bun.write(file, `${old.trimEnd()}\n\n${body(n, item.ask, item.reply)}\n`)
+      const id = (old.match(/^## \d+$/gm)?.length ?? 0) + 1
+      await Bun.write(file, `${old.trimEnd()}\n\n${body(id, item.ask, item.reply)}\n`)
     })
     return lock
   }
