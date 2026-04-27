@@ -21,6 +21,7 @@ import { CommandProvider, useCommandDialog } from "@tui/component/dialog-command
 import { DialogAgent } from "@tui/component/dialog-agent"
 import { DialogSessionList } from "@tui/component/dialog-session-list"
 import { DialogWorkspaceList } from "@tui/component/dialog-workspace-list"
+import { DialogPlugin } from "@tui/component/dialog-plugin"
 import { KeybindProvider } from "@tui/context/keybind"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
@@ -529,6 +530,18 @@ function App() {
         dialog.replace(() => <DialogProviderList />)
       },
       category: "Provider",
+    },
+    {
+      title: "Plugins",
+      value: "plugin.list",
+      slash: {
+        name: "plugin",
+        aliases: ["plugins"],
+      },
+      onSelect: () => {
+        dialog.replace(() => <DialogPlugin />)
+      },
+      category: "System",
     },
     {
       title: "View status",
