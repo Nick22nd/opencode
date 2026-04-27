@@ -55,7 +55,7 @@ describe("plugin.fs", () => {
         directory: project.path,
         async fn() {
           const item = await PluginFs.add(src, "project")
-          expect(item.path).toBe(path.join(project.path, ".opencode", "plugins", "sample.ts"))
+          expect(item.path).toBe(path.join(PluginFs.root("project"), "sample.ts"))
           expect(await Filesystem.readText(item.path)).toBe("export default {}")
         },
       })

@@ -6,6 +6,9 @@ import path from "path"
 import { rm } from "fs/promises"
 
 export namespace PluginFs {
+  const SEARCH = ["plugin", "plugins"] as const
+  const TARGET = "plugins"
+
   export type Scope = "global" | "project"
 
   export type Item = {
@@ -21,8 +24,8 @@ export namespace PluginFs {
   }
 
   function dirs(scope: Scope) {
-    if (scope === "global") return ["plugin", "plugins"].map((name) => path.join(base(scope), name))
-    return ["plugin", "plugins"].map((name) => path.join(base(scope), ".opencode", name))
+    if (scope === "global") return SEARCH.map((name) => path.join(base(scope), name))
+    return SEARCH.map((name) => path.join(base(scope), ".opencode", name))
   }
 
   function item(file: string, scope: Scope): Item {
@@ -48,8 +51,8 @@ export namespace PluginFs {
   }
 
   export function root(scope: Scope) {
-    if (scope === "global") return path.join(base(scope), "plugins")
-    return path.join(base(scope), ".opencode", "plugins")
+    if (scope === "global") return path.join(base(scope), TARGET)
+    return path.join(base(scope), ".opencode", TARGET)
   }
 
   async function scan(scope: Scope) {
