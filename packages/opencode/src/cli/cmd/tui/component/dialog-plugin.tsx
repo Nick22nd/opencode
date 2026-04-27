@@ -41,7 +41,6 @@ export function DialogPlugin() {
   ])
 
   async function reload(message: string) {
-    await PluginFs.list()
     await sdk.client.instance.dispose()
     await sync.bootstrap()
     await refetch()

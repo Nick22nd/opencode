@@ -39,6 +39,10 @@ export namespace PluginFs {
     return ext === ".js" || ext === ".ts"
   }
 
+  function sort(a: Item, b: Item) {
+    return a.name.localeCompare(b.name) || a.path.localeCompare(b.path)
+  }
+
   export function label(scope: Scope) {
     return scope === "global" ? "Global" : "Project"
   }
@@ -63,13 +67,13 @@ export namespace PluginFs {
     return files
       .flat()
       .map((file) => item(file, scope))
-      .toSorted((a, b) => a.name.localeCompare(b.name) || a.path.localeCompare(b.path))
+      .toSorted(sort)
   }
 
   export async function list() {
     return (await Promise.all([scan("project"), scan("global")]))
       .flat()
-      .toSorted((a, b) => a.scope.localeCompare(b.scope) || a.name.localeCompare(b.name) || a.path.localeCompare(b.path))
+      .toSorted((a, b) => a.scope.localeCompare(b.scope) || sort(a, b))
   }
 
   export async function find(ref: string) {
